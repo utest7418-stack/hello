@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TEJAS Library — Gallery Admin</title>
+<link rel="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#c9a84c;--gold-light:#e8c96e;
+  --bg:#080c18;--card:#0f1628;--card2:#131d30;
+  --border:rgba(255,255,255,0.08);--border-gold:rgba(201,168,76,0.3);
+  --text:#f0ece3;--text2:#b8c0cc;--text3:#6b7a8d;
+  --green:#3ecf8e;--red:#ef4444;
+}
+body{
+  font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;
+}
+.wrap{max-width:900px;margin:auto;padding:40px 20px 100px;}
+h1{
+  font-family:'Playfair Display',serif;font-size:1.8rem;
+  background:linear-gradient(90deg,var(--gold),var(--gold-light));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:6px;
+}
+.sub{color:var(--text3);font-size:0.85rem;margin-bottom:32px;}
+
+/* Login gate */
+#loginGate{
+  max-width:380px;margin:80px auto;background:var(--card);
+  border:1px solid var(--border);border-radius:16px;padding:32px;
+}
+#loginGate input{
+  width:100%;padding:13px 14px;margin-bottom:14px;border-radius:10px;
+  border:1px solid var(--border);background:rgba(255,255,255,0.03);
+  color:var(--text);font-size:0.9rem;outline:none;
+}
+#loginGate input:focus{border-color:var(--border-gold);}
+#loginGate button, .btn{
+  width:100%;padding:13px;border:none;border-radius:10px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-light));
+  color:#06090f;font-weight:700;cursor:pointer;font-size:0.9rem;
+}
+.err{color:var(--red);font-size:0.82rem;margin-bottom:10px;min-height:18px;}
+
+/* Setup / token card */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:24px;margin-bottom:24px;
+}
+.card h2{font-size:1.05rem;margin-bottom:14px;color:var(--gold-light);}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:0.78rem;color:var(--text3);margin-bottom:6px;letter-spacing:0.3px;}
+.field input,.field select{
+  width:100%;padding:11px 12px;border-radius:8px;
+  border:1px solid var(--border);background:rgba(255,255,255,0.03);
+  color:var(--text);font-size:0.88rem;outline:none;
+}
+.field input:focus,.field select:focus{border-color:var(--border-gold);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+.slot{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:12px;padding:16px;margin-bottom:12px;
+  display:grid;grid-template-columns:40px 90px 1fr 90px;gap:12px;align-items:center;
+}
+.slot .num{
+  font-family:'DM Mono',monospace;color:var(--gold);font-weight:700;text-align:center;
+}
+.toggle{
+  display:flex;align-items:center;gap:8px;font-size:0.75rem;color:var(--text3);cursor:pointer;
+  justify-content:center;
+}
+.toggle input{width:16px;height:16px;accent-color:var(--gold);}
+.thumb{
+  width:44px;height:32px;border-radius:6px;object-fit:cover;background:#000;
+  border:1px solid var(--border);
+}
+
+.save-bar{
+  position:sticky;bottom:0;background:rgba(8,12,24,0.95);backdrop-filter:blur(12px);
+  padding:16px 0;border-top:1px solid var(--border-gold);
+  display:flex;gap:12px;align-items:center;margin-top:20px;
+}
+.save-bar .btn{width:auto;padding:13px 28px;}
+.status{font-size:0.82rem;color:var(--text3);}
+.status.ok{color:var(--green);}
+.status.bad{color:var(--red);}
+
+.hint{font-size:0.76rem;color:var(--text3);line-height:1.6;margin-top:6px;}
+.hint a{color:var(--gold);}
+
+@media(max-width:600px){
+  .slot{grid-template-columns:30px 60px 1fr;}
+  .toggle{grid-column:1/-1;justify-content:flex-start;}
+  .row2{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN GATE ============ -->
+<div id="loginGate">
+  <h1 style="font-size:1.3rem;">TEJAS Admin</h1>
+  <p class="sub">Gallery management panel</p>
+  <div class="err" id="loginErr"></div>
+  <input type="password" id="passInput" placeholder="Enter admin password">
+  <button class="btn" onclick="tryLogin()">Unlock</button>
+</div>
+
+<!-- ============ MAIN PANEL (hidden until unlocked) ============ -->
+<div class="wrap" id="mainPanel" style="display:none;">
+  <h1>Gallery Admin</h1>
+  <p class="sub">Add / change image or video links and turn slots on or off. Changes save directly to your GitHub repo.</p>
+
+  <div class="card" id="setupCard">
+    <h2>1. Connect to your GitHub repo</h2>
+    <div class="row2">
+      <div class="field">
+        <label>GitHub Username</label>
+        <input type="text" id="ghOwner" placeholder="e.g. krishna123">
+      </div>
+      <div class="field">
+        <label>Repository Name</label>
+        <input type="text" id="ghRepo" placeholder="e.g. tejas-library">
+      </div>
+    </div>
+    <div class="field">
+      <label>Personal Access Token (fine-grained, Contents: Read & Write)</label>
+      <input type="password" id="ghToken" placeholder="github_pat_...">
+    </div>
+    <div class="hint">
+      Token banane ka tarika: GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token →
+      Repository access: sirf ye repo select karo → Permissions: <strong>Contents = Read and write</strong> → Generate.
+      Token sirf is browser session me rakha jaata hai, kahin save nahi hota — tab band karne pe delete ho jaata hai.
+    </div>
+    <div class="field" style="margin-top:14px;">
+      <button class="btn" onclick="connectRepo()">Load Gallery Slots</button>
+    </div>
+    <div class="status" id="connectStatus"></div>
+  </div>
+
+  <div id="slotsCard" style="display:none;">
+    <div class="card">
+      <h2>2. Manage 10 gallery slots</h2>
+      <div id="slotsList"></div>
+    </div>
+  </div>
+
+  <div class="save-bar" id="saveBar" style="display:none;">
+    <button class="btn" onclick="saveGallery()">💾 Save to GitHub</button>
+    <span class="status" id="saveStatus"></span>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CHANGE THE ADMIN PASSWORD HERE
+   ============================================================ */
+const ADMIN_PASSWORD = "12345";
+
+function tryLogin(){
+  const val = document.getElementById('passInput').value;
+  if(val === ADMIN_PASSWORD){
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('mainPanel').style.display = 'block';
+  } else {
+    document.getElementById('loginErr').textContent = 'Galat password.';
+  }
+}
+document.getElementById('passInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter') tryLogin();
+});
+
+/* ============================================================
+   GITHUB CONNECTION
+   ============================================================ */
+let currentSha = null;
+let currentOwner = '';
+let currentRepo = '';
+let currentToken = '';
+const FILE_PATH = 'gallery-config.json';
+
+async function connectRepo(){
+  currentOwner = document.getElementById('ghOwner').value.trim();
+  currentRepo  = document.getElementById('ghRepo').value.trim();
+  currentToken = document.getElementById('ghToken').value.trim();
+  const statusEl = document.getElementById('connectStatus');
+
+  if(!currentOwner || !currentRepo || !currentToken){
+    statusEl.textContent = 'Username, repo name aur token teeno bharo.';
+    statusEl.className = 'status bad';
+    return;
+  }
+
+  statusEl.textContent = 'Connecting...';
+  statusEl.className = 'status';
+
+  try{
+    const res = await fetch(`https://api.github.com/repos/${currentOwner}/${currentRepo}/contents/${FILE_PATH}`, {
+      headers: {
+        'Authorization': `Bearer ${currentToken}`,
+        'Accept': 'application/vnd.github+json'
+      }
+    });
+    if(!res.ok){
+      throw new Error(res.status === 404 ? 'gallery-config.json repo me nahi mila.' : `GitHub error: ${res.status}`);
+    }
+    const data = await res.json();
+    currentSha = data.sha;
+    const content = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+    renderSlots(content.slots || []);
+    statusEl.textContent = '✓ Connected. Slots loaded below.';
+    statusEl.className = 'status ok';
+    document.getElementById('slotsCard').style.display = 'block';
+    document.getElementById('saveBar').style.display = 'flex';
+  }catch(err){
+    statusEl.textContent = '✗ ' + err.message;
+    statusEl.className = 'status bad';
+  }
+}
+
+function renderSlots(slots){
+  // ensure always 10 slots
+  while(slots.length < 10){
+    slots.push({ id: slots.length + 1, type: 'image', url: '', enabled: false });
+  }
+  const list = document.getElementById('slotsList');
+  list.innerHTML = '';
+  slots.forEach((slot, i) => {
+    const row = document.createElement('div');
+    row.className = 'slot';
+    row.innerHTML = `
+      <div class="num">#${slot.id}</div>
+      <img class="thumb" src="${slot.type === 'video' ? '' : (slot.url || '')}" onerror="this.style.opacity=0.2" />
+      <div>
+        <input type="text" class="slot-url" data-idx="${i}" placeholder="Image or video URL" value="${slot.url ? slot.url.replace(/"/g,'&quot;') : ''}" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--text);font-size:0.85rem;margin-bottom:6px;">
+        <select class="slot-type" data-idx="${i}" style="padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--text2);font-size:0.78rem;">
+          <option value="image" ${slot.type !== 'video' ? 'selected' : ''}>Image</option>
+          <option value="video" ${slot.type === 'video' ? 'selected' : ''}>Video</option>
+        </select>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" class="slot-enabled" data-idx="${i}" ${slot.enabled ? 'checked' : ''}>
+        On
+      </label>
+    `;
+    list.appendChild(row);
+  });
+  window._currentSlots = slots;
+}
+
+async function saveGallery(){
+  const statusEl = document.getElementById('saveStatus');
+  const urls = document.querySelectorAll('.slot-url');
+  const types = document.querySelectorAll('.slot-type');
+  const enableds = document.querySelectorAll('.slot-enabled');
+
+  const slots = window._currentSlots.map((slot, i) => ({
+    id: slot.id,
+    type: types[i].value,
+    url: urls[i].value.trim(),
+    enabled: enableds[i].checked
+  }));
+
+  const newContent = JSON.stringify({ slots }, null, 2);
+  const encoded = btoa(unescape(encodeURIComponent(newContent)));
+
+  statusEl.textContent = 'Saving...';
+  statusEl.className = 'status';
+
+  try{
+    const res = await fetch(`https://api.github.com/repos/${currentOwner}/${currentRepo}/contents/${FILE_PATH}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${currentToken}`,
+        'Accept': 'application/vnd.github+json'
+      },
+      body: JSON.stringify({
+        message: 'Update gallery via admin panel',
+        content: encoded,
+        sha: currentSha
+      })
+    });
+    if(!res.ok){
+      const errData = await res.json().catch(()=>({}));
+      throw new Error(errData.message || `GitHub error: ${res.status}`);
+    }
+    const result = await res.json();
+    currentSha = result.content.sha;
+    window._currentSlots = slots;
+    statusEl.textContent = '✓ Saved! Live site 1-2 min me update hoga.';
+    statusEl.className = 'status ok';
+  }catch(err){
+    statusEl.textContent = '✗ ' + err.message;
+    statusEl.className = 'status bad';
+  }
+}
+</script>
+</body>
+</html>

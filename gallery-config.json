@@ -1,0 +1,14 @@
+{
+  "slots": [
+    { "id": 1,  "type": "image", "url": "images/library1.png", "enabled": true },
+    { "id": 2,  "type": "image", "url": "images/library1.png", "enabled": true },
+    { "id": 3,  "type": "image", "url": "images/library1.png", "enabled": true },
+    { "id": 4,  "type": "image", "url": "images/library1.png", "enabled": true },
+    { "id": 5,  "type": "image", "url": "images/library1.png", "enabled": true },
+    { "id": 6,  "type": "image", "url": "images/library1.png", "enabled": true },
+    { "id": 7,  "type": "image", "url": "", "enabled": false },
+    { "id": 8,  "type": "image", "url": "", "enabled": false },
+    { "id": 9,  "type": "image", "url": "", "enabled": false },
+    { "id": 10, "type": "image", "url": "", "enabled": false }
+  ]
+}
